@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12131a">
+<title>Majority Game · 多数派ゲーム</title>
+<style>
+:root{--bg:#12131a;--card:#1c1e29;--card2:#262937;--line:#30334a;--fg:#f5f2ea;--mut:#9b9db2;--a:#ff7a59;--b:#35c4b5;--gold:#f6c453;--ok:#5bd68a;--bad:#ff6b6b}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;-webkit-text-size-adjust:100%}
+#app{max-width:560px;margin:0 auto;padding:18px 16px 60px}
+body.admin #app{max-width:1180px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 10px}
+.brand .t b{font-size:19px;letter-spacing:.01em}.brand .t span{color:var(--mut);font-size:14px;margin-left:8px}
+.me{font-size:14px;color:var(--mut);text-align:right}.me b{color:var(--fg)}
+.card{background:var(--card);border-radius:18px;padding:18px;margin:12px 0}
+.card h3{margin:0 0 10px;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);font-weight:600}
+.mut{color:var(--mut)}.small{font-size:14px}.center{text-align:center}
+.en{display:block}.ja{display:block;color:var(--mut);font-size:.88em;margin-top:2px}
+.kicker{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);display:flex;justify-content:space-between;align-items:center}
+.prompt{font-size:14px;color:var(--gold);font-weight:600;margin-top:12px}
+.qt{font-size:23px;font-weight:700;line-height:1.3;margin:4px 0 6px}
+.qt .ja{font-weight:500;font-size:17px;margin-top:6px}
+.big{font-size:26px;font-weight:800;line-height:1.25}
+.opt{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;border-radius:16px;padding:16px;margin:10px 0;font:inherit;color:var(--fg);background:var(--card2);cursor:pointer;border:3px solid transparent;transition:transform .08s,background .15s}
+.opt:active{transform:scale(.985)}
+.opt[disabled]{cursor:default;opacity:.55}.opt.sel[disabled]{opacity:1}
+.tag{flex:0 0 30px;height:30px;border-radius:50%;text-align:center;line-height:30px;font-weight:800;color:#12131a;font-size:15px}
+.A .tag{background:var(--a)}.B .tag{background:var(--b)}
+.opt .lbl{font-weight:650;font-size:18px}.opt .lbl .ja{font-weight:500}
+.opt.sel.A{border-color:var(--a);background:#3b251f}.opt.sel.B{border-color:var(--b);background:#163431}
+.status{text-align:center;color:var(--mut);font-size:15px;margin-top:6px}
+.cd{text-transform:none;font-variant-numeric:tabular-nums;font-weight:800;font-size:18px;color:var(--fg);background:var(--card2);padding:3px 12px;border-radius:999px}
+.cd.low{color:#12131a;background:var(--gold)}
+.bar{position:relative;border-radius:14px;background:var(--card2);margin:10px 0;overflow:hidden;border:3px solid transparent}
+.bar .fill{position:absolute;inset:0 auto 0 0;opacity:.28}
+.bar.A .fill{background:var(--a)}.bar.B .fill{background:var(--b)}
+.bar.win{border-color:var(--gold)}.bar.win .fill{opacity:.45}
+.bar .row{position:relative;display:flex;gap:12px;align-items:flex-start;padding:14px}
+.bar .lbl{flex:1;font-weight:650}
+.bar .num{font-weight:800;font-size:20px;font-variant-numeric:tabular-nums;text-align:right}
+.bar .num small{display:block;font-size:12px;font-weight:600;color:var(--mut)}
+.chip{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;margin:6px 6px 0 0}
+.chip.gold{background:var(--gold);color:#12131a}.chip.you{background:#fff;color:#12131a}
+.verdict{text-align:center;padding:16px;border-radius:16px;margin-top:12px;font-weight:700;font-size:19px}
+.verdict.ok{background:rgba(91,214,138,.15);color:var(--ok)}.verdict.no{background:rgba(255,107,107,.12);color:var(--bad)}
+.verdict .ja{color:inherit;opacity:.85}
+input.in,textarea.in,select.in{width:100%;font:inherit;color:var(--fg);background:var(--card2);border:2px solid var(--line);border-radius:12px;padding:13px 14px;outline:none}
+input.in:focus,textarea.in:focus{border-color:var(--gold)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-weight:700;border:0;border-radius:14px;padding:14px 20px;cursor:pointer;background:var(--card2);color:var(--fg);text-decoration:none}
+.btn.pri{background:var(--gold);color:#12131a}.btn.full{width:100%;margin-top:12px}
+.btn.dan{background:transparent;color:var(--bad);border:2px solid rgba(255,107,107,.4)}
+.btn.sm{padding:8px 12px;font-size:14px;border-radius:10px}
+.btn[disabled]{opacity:.4;cursor:default}
+.err{color:var(--bad);font-size:14px;margin-top:8px;min-height:1em}
+.trophy{font-size:54px;line-height:1}
+.win-names{font-size:30px;font-weight:800;color:var(--gold);margin:6px 0}
+.hist{border-top:1px solid var(--line);padding:12px 0}.hist:first-of-type{border-top:0}
+.hist .hq{font-weight:650}.hist .hq .ja{font-weight:500}
+.hist .line{display:flex;gap:8px;font-size:14px;margin-top:6px}.hist .line .k{color:var(--mut);flex:0 0 112px}
+.mark{font-weight:800;font-size:20px;float:right;margin-left:8px}.mark.ok{color:var(--ok)}.mark.no{color:var(--bad)}
+#net{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;background:var(--bad);color:#fff;font-size:13px;font-weight:700;padding:6px 14px;border-radius:999px;display:none;z-index:9}
+/* admin */
+.grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700;background:var(--card2)}
+.pill.question{background:var(--gold);color:#12131a}.pill.reveal,.pill.final{background:var(--b);color:#12131a}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.stat{background:var(--card2);border-radius:12px;padding:10px 14px;min-width:96px}
+.stat b{display:block;font-size:24px;font-variant-numeric:tabular-nums}.stat span{font-size:12px;color:var(--mut)}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.join{display:flex;gap:16px;align-items:center}
+.join img{width:120px;height:120px;background:#fff;border-radius:10px;padding:6px;flex:0 0 auto}
+.join .url{font:600 15px ui-monospace,Menlo,monospace;word-break:break-all;margin:4px 0 10px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td,th{padding:8px 6px;border-top:1px solid var(--line);text-align:left}th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em;border-top:0}
+td.r{text-align:right;font-variant-numeric:tabular-nums}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--line)}.dot.on{background:var(--ok)}
+.x{background:none;border:0;color:var(--mut);cursor:pointer;font-size:16px;padding:2px 6px}.x:hover{color:var(--bad)}
+.qe{background:var(--card2);border-radius:14px;padding:12px;margin:10px 0}
+.qe .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:700}
+.qe .f{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.qe label{font-size:12px;color:var(--mut);display:block;margin-bottom:3px}
+.qe input.in{padding:9px 11px;font-size:15px;background:var(--card)}
+.toggle{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut);cursor:pointer}
+.ro{opacity:.75}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="net">Reconnecting… · 再接続中…</div>
+<script>
+(function () {
+'use strict';
+var ADMIN = location.pathname.replace(/\/+$/, '') === '/admin';
+var KEY = new URLSearchParams(location.search).get('key') || '';
+if (ADMIN) document.body.classList.add('admin');
+var store = {
+  get: function (k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } },
+  set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+};
+var myId = store.get('mg_id');
+var S = null, offset = 0, es = null;
+var app = document.getElementById('app'), net = document.getElementById('net');
+var LETTER = ['A', 'B'];
+var PHASE = { lobby: 'Lobby · 待機中', question: 'Answering · 回答受付中', locked: 'Closed · 締め切り', reveal: 'Revealed · 結果発表', final: 'Winner · 優勝発表' };
+
+function el(tag, cls, text, kids) {
+  var e = document.createElement(tag);
+  if (Array.isArray(text)) { kids = text; text = null; }
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  (kids || []).forEach(function (k) { if (k) e.appendChild(k); });
+  return e;
+}
+function bi(o, cls) {
+  var d = el('span', cls);
+  if (o && o.en) d.appendChild(el('span', 'en', o.en));
+  if (o && o.ja) d.appendChild(el('span', o.en ? 'ja' : 'en', o.ja));
+  return d;
+}
+function btn(text, cls, fn) { var b = el('button', 'btn ' + (cls || ''), text); b.type = 'button'; b.onclick = fn; return b; }
+function api(body) {
+  body.key = KEY; if (!ADMIN) body.id = myId;
+  return fetch('/api', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    .then(function (r) { return r.json(); })
+    .catch(function () { return { error: 'Network error · 通信エラー' }; });
+}
+function connect() {
+  if (es) es.close();
+  es = new EventSource('/events?' + (ADMIN ? 'admin=' + encodeURIComponent(KEY) : 'id=' + encodeURIComponent(myId)));
+  es.onmessage = function (e) { net.style.display = 'none'; S = JSON.parse(e.data); offset = S.now - Date.now(); render(); };
+  es.onerror = function () {
+    if (ADMIN && !S && es.readyState === 2) {
+      app.replaceChildren(el('div', 'card center', null, [el('div', 'big', 'Organizer key missing or wrong'),
+        el('p', 'mut', 'Open /admin?key=YOUR_KEY (the ADMIN_KEY you set when deploying).')]));
+      return;
+    }
+    if (S) net.style.display = 'block';
+  };
+}
+function tick() {
+  var now = Date.now() + offset;
+  document.querySelectorAll('[data-ends]').forEach(function (n) {
+    var r = Math.max(0, Math.ceil((+n.dataset.ends - now) / 1000));
+    n.textContent = r > 0 ? r + 's' : "Time's up";
+    n.classList.toggle('low', r <= 5);
+  });
+}
+setInterval(tick, 250);
+function countdown() {
+  if (!S.endsAt || S.phase !== 'question') return null;
+  var c = el('span', 'cd'); c.dataset.ends = S.endsAt; return c;
+}
+function bars(q, counts, winners, myVote, showWin) {
+  var tot = (counts[0] + counts[1]) || 0;
+  return [0, 1].map(function (k) {
+    var w = showWin && winners.indexOf(k) >= 0;
+    var pct = tot ? Math.round(counts[k] / tot * 100) : 0;
+    var fill = el('div', 'fill'); fill.style.width = pct + '%';
+    var lbl = el('div', 'lbl', null, [bi(q.a[k])]);
+    if (w) lbl.appendChild(el('span', 'chip gold', winners.length > 1 ? 'Tie · 同数' : 'Majority · 多数派'));
+    if (myVote === k) lbl.appendChild(el('span', 'chip you', 'Your pick · あなた'));
+    var num = el('div', 'num', String(counts[k]), [el('small', null, pct + '%')]);
+    return el('div', 'bar ' + LETTER[k] + (w ? ' win' : ''), null, [fill, el('div', 'row', null, [el('span', 'tag', LETTER[k]), lbl, num])]);
+  });
+}
+function header(right) {
+  return el('div', 'brand', null, [el('div', 't', null, [el('b', null, 'Majority Game'), el('span', null, '多数派ゲーム')]), right || null]);
+}
+function render() { if (ADMIN) renderAdmin(); else renderPlayer(); tick(); }
+
+/* ================= PLAYER ================= */
+var screen = '';
+function rulesCard() {
+  return el('div', 'card small', null, [
+    el('div', null, 'Each question has two choices. Pick the one you think MOST people here will pick. Match the majority = 1 point. Most points wins!'),
+    el('div', 'ja', '各質問で、ここにいる多くの人が選びそうな方を選んでください。多数派と一致すれば1ポイント。最多得点の人が優勝！')
+  ]);
+}
+function joinScreen() {
+  var inp = el('input', 'in'); inp.placeholder = 'Name or nickname · 名前／ニックネーム'; inp.maxLength = 20; inp.autocomplete = 'nickname';
+  var err = el('div', 'err');
+  var go = btn('Join · 参加する', 'pri full', function () {
+    go.disabled = true;
+    api({ act: 'join', name: inp.value }).then(function (r) {
+      go.disabled = false;
+      if (r.id) { myId = r.id; store.set('mg_id', myId); screen = ''; connect(); } else err.textContent = r.error || 'Error';
+    });
+  });
+  inp.onkeydown = function (e) { if (e.key === 'Enter') go.click(); };
+  app.replaceChildren(header(), el('div', 'card', null, [
+    el('div', 'big', 'Welcome!'), el('div', 'mut', 'ようこそ！'),
+    el('p', 'small mut', 'Enter your name to join · 名前を入力して参加'), inp, go, err
+  ]), rulesCard());
+  setTimeout(function () { inp.focus(); }, 50);
+}
+function renderPlayer() {
+  if (!S.me) { if (screen !== 'join') { screen = 'join'; joinScreen(); } return; }
+  screen = 'game';
+  var me = S.me, q = S.q, kids = [];
+  var right = el('div', 'me', null, [el('b', null, me.name), el('div', null, me.score + ' pt' + (me.score === 1 ? '' : 's'))]);
+  kids.push(header(right));
+
+  if (S.phase === 'lobby') {
+    kids.push(el('div', 'card center', null, [
+      el('div', 'big', "You're in, " + me.name + '!'), el('div', 'mut', '参加しました！'),
+      el('p', 'mut', 'Waiting for the host to start… · 開始までお待ちください'),
+      el('div', 'small mut', S.n + ' player' + (S.n === 1 ? '' : 's') + ' joined · ' + S.n + '人が参加中')
+    ]), rulesCard());
+  } else if (S.phase === 'question' || S.phase === 'locked') {
+    var open = S.phase === 'question';
+    var card = el('div', 'card', null, [
+      el('div', 'kicker', null, [el('span', null, 'Question ' + (S.idx + 1) + ' / ' + S.total), countdown()]),
+      el('div', 'prompt', 'Which will the MAJORITY pick? · 多数派はどっち？'),
+      bi(q.q, 'qt')
+    ]);
+    [0, 1].forEach(function (k) {
+      var b = el('button', 'opt ' + LETTER[k] + (me.vote === k ? ' sel' : ''), null, [el('span', 'tag', LETTER[k]), bi(q.a[k], 'lbl')]);
+      b.type = 'button'; b.disabled = !open;
+      b.onclick = function () {
+        if (!open) return;
+        me.vote = k; renderPlayer();
+        api({ act: 'vote', choice: k }).then(function (r) { if (r.error) { st.textContent = r.error; } });
+      };
+      card.appendChild(b);
+    });
+    var st = el('div', 'status', open
+      ? (me.vote == null ? 'Tap your answer · タップして回答' : 'Answer saved — you can change it until time is up · 時間内なら変更できます')
+      : (me.vote == null ? 'Answers closed — you didn’t answer · 締め切り（未回答）' : 'Answers closed — waiting for the result… · 締め切り。結果発表をお待ちください'));
+    card.appendChild(st);
+    kids.push(card);
+  } else if (S.phase === 'reveal') {
+    var r = S.result || { counts: [0, 0], winners: [] };
+    var card2 = el('div', 'card', null, [el('div', 'kicker', null, [el('span', null, 'Result · 結果  —  Q' + (S.idx + 1) + ' / ' + S.total)]), bi(q.q, 'qt')]);
+    bars(q, r.counts, r.winners, me.vote, true).forEach(function (b) { card2.appendChild(b); });
+    var hit = me.vote != null && r.winners.indexOf(me.vote) >= 0;
+    card2.appendChild(el('div', 'verdict ' + (hit ? 'ok' : 'no'), null, [
+      el('span', 'en', hit ? 'You matched the majority! +1' : (me.vote == null ? 'No answer this round' : 'Not this time')),
+      el('span', 'ja', hit ? '多数派を当てました！ +1' : (me.vote == null ? '今回は未回答' : '残念！'))
+    ]));
+    card2.appendChild(el('div', 'status', 'Score: ' + me.score + ' · Waiting for the next question… · 次の質問をお待ちください'));
+    kids.push(card2);
+  } else if (S.phase === 'final') {
+    var w = S.winners || [];
+    kids.push(el('div', 'card center', null, [
+      el('div', 'trophy', '🏆'), el('div', 'mut', 'Winner · 優勝'),
+      el('div', 'win-names', w.length ? w.map(function (x) { return x.name; }).join(' & ') : '—'),
+      el('div', 'mut', w.length ? w[0].score + ' / ' + S.asked + ' points' : '')
+    ]));
+    kids.push(el('div', 'card center', null, [
+      el('div', 'mut small', 'Your result · あなたの結果'),
+      el('div', 'big', me.score + ' / ' + S.asked + ' pts'),
+      el('div', 'mut', 'Rank ' + me.rank + ' of ' + S.n + ' · ' + S.n + '人中 ' + me.rank + '位')
+    ]));
+    var hc = el('div', 'card', null, [el('h3', null, 'Your answers · あなたの回答')]);
+    (S.history || []).forEach(function (h) {
+      var hit = h.vote != null && h.winners.indexOf(h.vote) >= 0;
+      var maj = h.winners.length === 0 ? null : h.winners.length > 1 ? null : h.q.a[h.winners[0]];
+      var mine = h.vote == null ? el('span', 'mut', 'No answer · 未回答') : bi(h.q.a[h.vote]);
+      var majEl = h.winners.length > 1 ? el('span', null, 'Tie (' + h.counts[0] + '–' + h.counts[1] + ') · 同数') : maj ? bi(maj) : el('span', 'mut', '—');
+      if (maj) majEl.appendChild(el('span', 'ja', h.counts[h.winners[0]] + ' of ' + (h.counts[0] + h.counts[1]) + ' votes'));
+      hc.appendChild(el('div', 'hist', null, [
+        el('span', 'mark ' + (hit ? 'ok' : 'no'), hit ? '✓' : '✗'),
+        el('div', 'hq', null, [el('span', 'mut small', 'Q' + h.n), bi(h.q.q)]),
+        el('div', 'line', null, [el('span', 'k', 'You · 自分'), mine]),
+        el('div', 'line', null, [el('span', 'k', 'Majority · 多数派'), majEl])
+      ]));
+    });
+    kids.push(hc);
+  }
+  app.replaceChildren.apply(app, kids);
+}
+
+/* ================= ADMIN ================= */
+var A = null, showLive = false, dirty = false, draft = null, edQver = -1, edLobby = null;
+function buildAdmin() {
+  A = {
+    ctl: el('div', 'card'), players: el('div', 'card'), hist: el('div', 'card'), edit: el('div', 'card')
+  };
+  var url = location.origin + '/';
+  var img = el('img'); img.src = '/qr.svg'; img.alt = 'QR code';
+  var copy = btn('Copy link', 'sm', function () {
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(function () { copy.textContent = 'Copied ✓'; }, function () {});
+  });
+  var print = el('a', 'btn sm pri', 'Printable QR · 印刷用'); print.href = '/print'; print.target = '_blank';
+  var join = el('div', 'card', null, [el('h3', null, 'Join link · 参加リンク'), el('div', 'join', null, [img, el('div', null, [
+    el('div', 'url', url), el('div', 'btns', null, [copy, print])])])]);
+  app.replaceChildren(header(el('span', 'mut small', 'Organizer · 管理画面')),
+    el('div', 'grid', null, [el('div', null, [A.ctl, A.hist, A.edit]), el('div', null, [join, A.players])]));
+}
+function act(body, confirmMsg) {
+  if (confirmMsg && !window.confirm(confirmMsg)) return Promise.resolve({});
+  return api(body).then(function (r) { if (r.error) window.alert(r.error); return r; });
+}
+function renderAdmin() {
+  if (!A) buildAdmin();
+  renderCtl(); renderPlayers(); renderHist();
+  var lobby = S.phase === 'lobby';
+  if (!dirty && (S.qver !== edQver || lobby !== edLobby)) renderEditor();
+}
+function renderCtl() {
+  var c = A.ctl, kids = [];
+  kids.push(el('div', 'kicker', null, [el('span', 'pill ' + S.phase, PHASE[S.phase]), countdown()]));
+  kids.push(el('div', 'stats', null, [
+    el('div', 'stat', null, [el('b', null, String(S.n)), el('span', null, 'Players · 参加者')]),
+    el('div', 'stat', null, [el('b', null, S.idx >= 0 ? (S.idx + 1) + ' / ' + S.total : '— / ' + S.total), el('span', null, 'Question · 質問')]),
+    el('div', 'stat', null, [el('b', null, S.phase === 'lobby' || S.phase === 'final' ? '—' : S.answered + ' / ' + S.n), el('span', null, 'Answered · 回答済み')])
+  ]));
+  var q = S.idx >= 0 ? S.questions[S.idx] : null;
+  var b = [];
+  if (S.phase === 'lobby') {
+    kids.push(el('p', 'mut', 'Players can join now. Press Start when everyone is in. · 全員が参加したら開始してください。'));
+    b.push(btn('▶ Start game · 開始', 'pri', function () { act({ act: 'start' }); }));
+  } else if (S.phase === 'final') {
+    var w = S.winners || [];
+    kids.push(el('div', 'center', null, [el('div', 'trophy', '🏆'), el('div', 'mut', 'Winner · 優勝'),
+      el('div', 'win-names', w.length ? w.map(function (x) { return x.name; }).join(' & ') : 'No points scored'),
+      el('div', 'mut', w.length ? w[0].score + ' / ' + S.asked + ' points' + (w.length > 1 ? ' — tie' : '') : '')]));
+    b.push(btn('↺ New game (keep players) · もう一度', '', function () { act({ act: 'reset' }, 'Start over? Scores will be cleared; players stay joined.'); }));
+  } else {
+    kids.push(bi(q.q, 'qt'));
+    var r = S.results[S.idx];
+    if (S.phase === 'reveal' && r) {
+      bars(q, r.counts, r.winners, null, true).forEach(function (x) { kids.push(x); });
+    } else if (showLive) {
+      bars(q, S.counts, [], null, false).forEach(function (x) { kids.push(x); });
+    } else {
+      [0, 1].forEach(function (k) { kids.push(el('div', 'bar ' + LETTER[k], null, [el('div', 'row', null, [el('span', 'tag', LETTER[k]), el('div', 'lbl', null, [bi(q.a[k])])])])); });
+    }
+    if (S.phase !== 'reveal') {
+      var t = el('label', 'toggle'); var cb = el('input'); cb.type = 'checkbox'; cb.checked = showLive;
+      cb.onchange = function () { showLive = cb.checked; renderCtl(); };
+      t.appendChild(cb); t.appendChild(el('span', null, 'Show live split (hide if screen is projected) · 途中経過を表示'));
+      kids.push(t);
+    }
+    if (S.phase === 'question') {
+      b.push(btn('⏹ Close answers · 締め切る', '', function () { act({ act: 'close' }); }));
+      b.push(btn('Reveal majority · 結果発表', 'pri', function () { act({ act: 'reveal' }); }));
+    } else if (S.phase === 'locked') {
+      b.push(btn('Reveal majority · 結果発表', 'pri', function () { act({ act: 'reveal' }); }));
+    } else if (S.phase === 'reveal') {
+      var last = S.idx >= S.total - 1;
+      if (!last) b.push(btn('Next question → 次の質問', 'pri', function () { act({ act: 'next' }); }));
+      b.push(btn('🏆 Announce winner · 優勝者発表', last ? 'pri' : '', function () {
+        act({ act: 'final' }, last ? null : 'End the game now after question ' + (S.idx + 1) + ' and announce the winner?');
+      }));
+    }
+    b.push(btn('Reset', 'dan sm', function () { act({ act: 'reset' }, 'Reset the game back to the lobby? All answers and scores will be cleared (players stay joined).'); }));
+  }
+  kids.push(el('div', 'btns', null, b));
+  c.replaceChildren.apply(c, kids);
+}
+function renderPlayers() {
+  var c = A.players, kids = [el('h3', null, 'Leaderboard · 順位 (' + S.n + ')')];
+  var inQ = S.phase === 'question' || S.phase === 'locked';
+  if (!S.players.length) kids.push(el('p', 'mut small', 'No one has joined yet. · まだ参加者はいません'));
+  else {
+    var tb = el('table'), hr = el('tr');
+    ['#', 'Name', 'Pts', inQ ? 'Ans' : '', ''].forEach(function (h) { hr.appendChild(el('th', null, h)); });
+    tb.appendChild(hr);
+    S.players.forEach(function (p) {
+      var tr = el('tr');
+      tr.appendChild(el('td', 'mut', String(p.rank)));
+      tr.appendChild(el('td', null, p.name));
+      tr.appendChild(el('td', 'r', String(p.score)));
+      tr.appendChild(el('td', null, null, inQ ? [el('span', 'dot' + (p.answered ? ' on' : ''))] : []));
+      var x = el('button', 'x', '✕'); x.title = 'Remove player';
+      x.onclick = function () { act({ act: 'kick', pid: p.id }, 'Remove ' + p.name + ' from the game?'); };
+      tr.appendChild(el('td', 'r', null, [x]));
+      tb.appendChild(tr);
+    });
+    kids.push(tb);
+  }
+  if (S.phase === 'lobby' && S.players.length) kids.push(el('div', 'btns', null, [btn('Remove all players', 'dan sm', function () {
+    act({ act: 'clearPlayers' }, 'Remove ALL players? Use this to clear test entries before the real game.');
+  })]));
+  c.replaceChildren.apply(c, kids);
+}
+function renderHist() {
+  var c = A.hist, kids = [el('h3', null, 'Results so far · これまでの結果')], any = false;
+  (S.results || []).forEach(function (r, k) {
+    if (!r) return; any = true;
+    var q = S.questions[k];
+    var maj = r.winners.length === 0 ? 'No answers' : r.winners.length > 1 ? 'Tie · 同数' : LETTER[r.winners[0]] + ': ' + (q.a[r.winners[0]].en || q.a[r.winners[0]].ja);
+    kids.push(el('div', 'hist', null, [
+      el('div', 'hq', null, [el('span', 'mut small', 'Q' + (k + 1) + '  '), el('span', null, q.q.en || q.q.ja)]),
+      el('div', 'line', null, [el('span', 'k', 'Majority'), el('span', null, maj + '   (A ' + r.counts[0] + ' – B ' + r.counts[1] + ')')])
+    ]));
+  });
+  if (!any) kids.push(el('p', 'mut small', 'Results appear here after each reveal.'));
+  c.replaceChildren.apply(c, kids);
+}
+function renderEditor() {
+  var c = A.edit, lobby = S.phase === 'lobby';
+  edQver = S.qver; edLobby = lobby;
+  draft = JSON.parse(JSON.stringify(S.questions));
+  dirty = false;
+  var kids = [el('h3', null, 'Questions · 質問 (' + draft.length + ')')];
+
+  var sel = el('select', 'in'); sel.style.maxWidth = '220px';
+  [0, 10, 15, 20, 30, 45, 60, 90, 120].forEach(function (s) {
+    var o = el('option', null, s ? s + ' seconds' : 'No timer (close manually)'); o.value = s; if (s === S.timer) o.selected = true; sel.appendChild(o);
+  });
+  sel.onchange = function () { act({ act: 'timer', secs: +sel.value }); };
+  kids.push(el('div', 'toggle', null, [el('span', null, 'Answer timer · 回答時間'), sel]));
+  kids.push(el('p', 'mut small', 'When the timer runs out, answers close automatically. You still press Reveal. Changes apply from the next question.'));
+
+  if (!lobby) {
+    kids.push(el('p', 'mut small', 'Questions can be edited in the lobby (before Start, or after Reset). · 質問の編集は開始前のみ可能です。'));
+    draft.forEach(function (q, i) {
+      kids.push(el('div', 'qe ro', null, [el('div', 'hd', 'Q' + (i + 1)), bi(q.q), el('div', 'small mut', 'A: ' + (q.a[0].en || q.a[0].ja) + '  /  B: ' + (q.a[1].en || q.a[1].ja))]));
+    });
+    c.replaceChildren.apply(c, kids); return;
+  }
+
+  var bar = el('div', 'btns');
+  var saveB = btn('Save questions · 保存', 'pri', function () {
+    saveB.disabled = true;
+    api({ act: 'questions', questions: draft }).then(function (r) {
+      if (r.error) { saveB.disabled = false; window.alert(r.error); return; }
+      dirty = false; edQver = -1; if (S.qver !== edQver) renderEditor();
+    });
+  });
+  saveB.disabled = true;
+  var note = el('span', 'mut small', '');
+  function markDirty() { dirty = true; saveB.disabled = false; note.textContent = 'Unsaved changes · 未保存'; }
+  var list = el('div');
+  function drawList() {
+    list.replaceChildren();
+    draft.forEach(function (q, i) {
+      function field(label, obj, key) {
+        var inp = el('input', 'in'); inp.value = obj[key] || ''; inp.maxLength = 200;
+        inp.oninput = function () { obj[key] = inp.value; markDirty(); };
+        return el('div', null, [el('label', null, label), inp]);
+      }
+      var up = btn('↑', 'sm', function () { if (i > 0) { draft.splice(i - 1, 0, draft.splice(i, 1)[0]); markDirty(); drawList(); } });
+      var dn = btn('↓', 'sm', function () { if (i < draft.length - 1) { draft.splice(i + 1, 0, draft.splice(i, 1)[0]); markDirty(); drawList(); } });
+      var del = btn('Delete', 'dan sm', function () { if (draft.length > 1 && window.confirm('Delete Q' + (i + 1) + '?')) { draft.splice(i, 1); markDirty(); drawList(); } });
+      list.appendChild(el('div', 'qe', null, [
+        el('div', 'hd', null, [el('span', null, 'Q' + (i + 1)), el('span', 'btns', null, [up, dn, del])]),
+        el('div', 'f', null, [field('Question (EN)', q.q, 'en'), field('質問 (JA)', q.q, 'ja')]),
+        el('div', 'f', null, [field('A (EN)', q.a[0], 'en'), field('A (JA)', q.a[0], 'ja')]),
+        el('div', 'f', null, [field('B (EN)', q.a[1], 'en'), field('B (JA)', q.a[1], 'ja')])
+      ]));
+    });
+  }
+  drawList();
+  kids.push(list);
+  bar.appendChild(btn('+ Add question · 追加', '', function () {
+    draft.push({ q: { en: '', ja: '' }, a: [{ en: '', ja: '' }, { en: '', ja: '' }] }); markDirty(); drawList();
+  }));
+  bar.appendChild(saveB);
+  bar.appendChild(btn('Discard changes', 'sm', function () { dirty = false; renderEditor(); }));
+  bar.appendChild(btn('Restore defaults', 'dan sm', function () { act({ act: 'defaults' }, 'Replace all questions with the original 12?').then(function (r) { if (r && r.ok) renderEditor(); }); }));
+  kids.push(el('div', null, [bar, note]));
+  c.replaceChildren.apply(c, kids);
+}
+
+connect();
+})();
+</script>
+</body>
+</html>
